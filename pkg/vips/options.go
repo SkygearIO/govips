@@ -108,6 +108,21 @@ func OutputString(name string, v *string) *Option {
 	return o
 }
 
+// InputBackground is a workaround to pass background to embed.
+func InputBackground(name string, r float64, g float64, b float64) *Option {
+	bg := [3]C.double{
+		C.double(r),
+		C.double(g),
+		C.double(b),
+	}
+	v := C.vips_array_double_new((*C.double)(unsafe.Pointer(&bg)), 3)
+	o := NewOption(name, C.vips_array_double_get_type(), false, func(gv *C.GValue) {
+		defer C.vips_area_unref((*C.VipsArea)(unsafe.Pointer(C.g_value_get_boxed(gv))))
+	})
+	C.g_value_set_boxed(&o.gvalue, C.gconstpointer(v))
+	return o
+}
+
 // InputImage represents a VipsImage input option
 func InputImage(name string, v *C.VipsImage) *Option {
 	o := NewOption(name, C.vips_image_get_type(), false, nil)
